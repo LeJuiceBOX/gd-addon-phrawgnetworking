@@ -1,5 +1,5 @@
 # This is a representation of a client connected to the server.
-class_name ServerClient extends Client
+class_name DirectClient extends Client
 
 var peer: ENetPacketPeer
 
