@@ -1,0 +1,23 @@
+[
+	{
+		"Name": "CHAT",
+		"MaxBytes": 256,
+		"Schema": [
+			{
+				"Name": "message",
+				"Type": "STRING",
+				"Length": 256
+			}
+		]
+	},
+	{
+		"Name": "CLIENT_CONNECT",
+		"MaxBytes": 4,
+		"Schema": [
+			{
+				"Name": "id",
+				"Type": "U8"
+			}
+		]	
+	}
+]
