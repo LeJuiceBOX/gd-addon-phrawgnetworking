@@ -21,6 +21,9 @@ func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
 	print(str(peer)," disconnect!")
 
 func _event_receive(packet : Packet):
+	if packet.type == "CONNECTION_ESTABLISHED":
+		print("Successfuly connected to the server!")
+		on_connection_established.emit()
 	print("Recieved packet: "+str(packet.type))
 	
 func _event_error(peer: ENetPacketPeer, data: int, channel: int):
