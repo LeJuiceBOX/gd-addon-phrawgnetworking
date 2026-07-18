@@ -85,9 +85,9 @@ func _init() -> void:
 		var d_name = def.get("Name")
 		var d_max_bytes = def.get("MaxBytes")
 		var d_schema : Array[PacketDataChunk] = []
-		assert(d_name,"In packet definition "+str(index)+", the field 'Name' is missing.")
-		assert(d_max_bytes,"In packet definition "+str(index)+", the field 'MaxBytes' is missing.")
-		assert(def.get("Schema"),"In packet definition "+str(index)+", the field 'Schema' is missing.")
+		assert(def.has("Name"),"In packet definition "+str(index)+", the field 'Name' is missing.")
+		assert(def.has("MaxBytes"),"In packet definition "+str(index)+", the field 'MaxBytes' is missing.")
+		assert(def.has("Schema"),"In packet definition "+str(index)+", the field 'Schema' is missing.")
 		var sub_index = 0
 		for chunk in def.get("Schema"):
 			var dc_name = chunk.get("Name")
