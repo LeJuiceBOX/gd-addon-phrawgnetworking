@@ -11,6 +11,17 @@ signal on_player_removed()
 
 ####################################################################################################################
 
+func send_reliable(packet_type : String, data_to_encode : Array = []):
+	_send_packet_raw(server_peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.RELIABLE)
+
+func send_unreliable(packet_type: String, data_to_encode: Array = []):
+	_send_packet_raw(server_peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.UNRELIABLE)
+
+func send_unsequenced(packet_type: String, data_to_encode: Array = []):
+	_send_packet_raw(server_peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.UNSEQUENCED)
+
+####################################################################################################################
+
 func _init(server_peer : ENetPacketPeer) -> void:
 	self.server_peer = server_peer
 
