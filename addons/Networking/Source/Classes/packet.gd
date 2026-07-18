@@ -12,4 +12,3 @@ func _init(peer : ENetPacketPeer, channel: int, type: String, data : Dictionary)
 	self.channel = channel
 	self.data = data
 	self.type = type
-	

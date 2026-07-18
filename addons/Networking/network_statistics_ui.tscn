@@ -1,0 +1,101 @@
+[gd_scene format=3 uid="uid://480rjpwihm10"]
+
+[ext_resource type="Script" uid="uid://dgx3mee5wroqn" path="res://addons/Networking/Source/network_statistics_ui.gd" id="1_w5elg"]
+
+[node name="Control" type="Control" unique_id=1231450509]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_w5elg")
+
+[node name="Panel" type="Panel" parent="." unique_id=453238539]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=1773159313]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer" unique_id=999353386]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/MarginContainer/VBoxContainer" unique_id=529487203]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "NetStats"
+
+[node name="StatsRow" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer" unique_id=312348949]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="StatsLeft" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer/StatsRow" unique_id=312348950]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "[color=ORANGE]Bytes UP: [/color]{BYTES_UP}
+[color=ORANGE]Bytes DN: [/color]{BYTES_DN}
+[color=ORANGE]Transfered (last min): [/color]{BYTES_TRANSFERRED_MIN}
+[color=ORANGE]Packets UP{PIPE}DN: [/color]{PACKETS_UP} {PIPE} {PACKETS_DN}
+[color=ORANGE]Peak UP{PIPE}DN: [/color]{PEAK_UP} {PIPE} {PEAK_DN}
+[color=ORANGE]Min UP{PIPE}DN: [/color]{MIN_UP} {PIPE} {MIN_DN}
+[color=ORANGE]Avg UP{PIPE}DN: [/color]{AVG_UP} {PIPE} {AVG_DN}"
+fit_content = true
+
+[node name="StatsRight" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer/StatsRow" unique_id=312348951]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "[color=ORANGE]Total UP{PIPE}DN: [/color]{TOTAL_UP} {PIPE} {TOTAL_DN}
+[color=ORANGE]Total packets UP{PIPE}DN: [/color]{TOTAL_PACKETS_UP} {PIPE} {TOTAL_PACKETS_DN}
+[color=ORANGE]Ping: [/color]{PING}
+[color=ORANGE]Ping min{PIPE}avg{PIPE}max: [/color]{PING_MIN} {PIPE} {PING_AVG} {PIPE} {PING_MAX}
+[color=ORANGE]Jitter: [/color]{JITTER}
+[color=ORANGE]Packet loss: [/color]{LOSS}
+[color=ORANGE]Uptime: [/color]{UPTIME}"
+fit_content = true
+
+[node name="ByTypeSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer" unique_id=1511470909]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="ByType" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer" unique_id=312348952]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+text = "[color=ORANGE]By type: [/color]
+{BY_TYPE}"
+scroll_following_visible_characters = true
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer" unique_id=1511470908]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Panel/MarginContainer/VBoxContainer" unique_id=1275282571]
+custom_minimum_size = Vector2(0, 128)
+layout_mode = 2
+
+[node name="PacketLog" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer/PanelContainer" unique_id=543555692]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+scroll_following = true

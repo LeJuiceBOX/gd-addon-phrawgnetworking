@@ -1,5 +1,5 @@
 # CLIENT INTERFACE
-class_name ClientNetworkInterface extends BaseNetworkInterface
+class_name ClientNetworkInterface extends _NetworkInterface
 
 var server_peer: ENetPacketPeer
 
@@ -12,13 +12,13 @@ signal on_player_removed()
 ####################################################################################################################
 
 func send_reliable(packet_type : String, data_to_encode : Array = []):
-	_send_packet_raw(server_peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.RELIABLE)
+	send_raw(server_peer,0,Network.TransportType.RELIABLE,PacketHandler.serialize(packet_type,data_to_encode))
 
 func send_unreliable(packet_type: String, data_to_encode: Array = []):
-	_send_packet_raw(server_peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.UNRELIABLE)
+	send_raw(server_peer,0,Network.TransportType.UNRELIABLE,PacketHandler.serialize(packet_type,data_to_encode))
 
 func send_unsequenced(packet_type: String, data_to_encode: Array = []):
-	_send_packet_raw(server_peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.UNSEQUENCED)
+	send_raw(server_peer,0,Network.TransportType.UNSEQUENCED,PacketHandler.serialize(packet_type,data_to_encode))
 
 ####################################################################################################################
 
