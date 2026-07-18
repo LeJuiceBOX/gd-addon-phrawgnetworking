@@ -49,7 +49,7 @@ func _fmt_ms(v: float) -> String:
 
 
 func _fmt_uptime(seconds: float) -> String:
-	var total := int(seconds)
+	var total = int(seconds)
 	if total < 60:
 		return "%ds" % total
 	if total < 3600:
@@ -62,7 +62,7 @@ func _fmt_uptime(seconds: float) -> String:
 func _fmt_by_type(by_type: Dictionary) -> String:
 	if by_type.is_empty():
 		return "  [color=GRAY]no packets yet[/color]"
-	var names := by_type.keys()
+	var names = by_type.keys()
 	names.sort_custom(func(a, b):
 		var ea: Dictionary = by_type[a]
 		var eb: Dictionary = by_type[b]
@@ -84,7 +84,7 @@ func _fmt_by_type(by_type: Dictionary) -> String:
 ## labels, so which placeholders a given template actually uses is up to the
 ## .tscn; unused entries are simply no-ops.
 func _fill(template: String, values: Dictionary) -> String:
-	var text := template
+	var text = template
 	for key in values:
 		text = text.replace("{%s}" % key, values[key])
 	return text
@@ -93,8 +93,8 @@ func _fill(template: String, values: Dictionary) -> String:
 ## Redraws the readout. Driven by NetworkStatistics.window_elapsed, so it
 ## updates once per second rather than every frame.
 func refresh_stats() -> void:
-	var s := Network.statistics
-	var v := {}
+	var s = Network.statistics
+	var v = {}
 
 	v["PIPE"] = PIPE
 

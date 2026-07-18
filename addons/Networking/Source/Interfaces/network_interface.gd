@@ -19,7 +19,7 @@ func send_raw(peer : ENetPacketPeer, channel: int, flag: Network.TransportType, 
 	# ever showed inbound traffic. Deserializing our own bytes back into a
 	# Packet is the cheapest way to give the log the same shape it expects.
 	if not Network.on_packet_sent.get_connections().is_empty():
-		var sent_packet := PacketHandler.deserialize(peer, channel, bytes)
+		var sent_packet = PacketHandler.deserialize(peer, channel, bytes)
 		if sent_packet != null:
 			Network.on_packet_sent.emit(sent_packet)
 
@@ -30,7 +30,7 @@ func send_raw(peer : ENetPacketPeer, channel: int, flag: Network.TransportType, 
 static func _type_name_of(bytes: PackedByteArray) -> String:
 	if bytes.size() < 1:
 		return "UNKNOWN"
-	var id := bytes[0]
+	var id = bytes[0]
 	if id < 0 or id > PacketHandler.packet_defs.size() - 1:
 		return "UNKNOWN"
 	return PacketHandler.packet_defs[id].name
@@ -55,7 +55,7 @@ func poll():
 				active = false
 				break
 			ENetConnection.EVENT_RECEIVE:
-				var bytes := peer.get_packet()
+				var bytes = peer.get_packet()
 				if bytes.size() < 1: continue
 				# Counted before the id check so dropped packets still show up
 				# as consumed bandwidth, which is the point of a diagnostic.

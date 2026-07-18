@@ -82,7 +82,7 @@ func record_out(byte_count: int, packet_count: int = 1) -> void:
 
 
 func record_ping(ms: float) -> void:
-	var prev := ping_ms
+	var prev = ping_ms
 	ping_ms = ms
 	if _ping_samples > 0:
 		jitter_ms = lerp(jitter_ms, absf(ms - prev), 0.1)
@@ -131,14 +131,14 @@ func _type_entry(type_name: String) -> Dictionary:
 
 func record_in_typed(type_name: String, byte_count: int) -> void:
 	record_in(byte_count)
-	var e := _type_entry(type_name)
+	var e = _type_entry(type_name)
 	e["in_bytes"] += byte_count
 	e["in_count"] += 1
 
 
 func record_out_typed(type_name: String, byte_count: int) -> void:
 	record_out(byte_count)
-	var e := _type_entry(type_name)
+	var e = _type_entry(type_name)
 	e["out_bytes"] += byte_count
 	e["out_count"] += 1
 
@@ -212,14 +212,14 @@ func total_bytes() -> int:
 ## ring buffer gives exactly the trailing minute. Windows that haven't been
 ## filled yet are 0, so this reads low for the first minute of uptime.
 func bytes_in_last_min() -> int:
-	var sum := 0
+	var sum = 0
 	for v in history_in:
 		sum += v
 	return sum
 
 
 func bytes_out_last_min() -> int:
-	var sum := 0
+	var sum = 0
 	for v in history_out:
 		sum += v
 	return sum

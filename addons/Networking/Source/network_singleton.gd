@@ -79,6 +79,6 @@ func _physics_process(delta: float) -> void:
 		# client, so a single global ping figure would be meaningless and is
 		# left unsampled.
 		if not is_server:
-			var ci := _current_interface as ClientNetworkInterface
+			var ci = _current_interface as ClientNetworkInterface
 			if ci != null:
 				statistics.sample_peer(ci.server_peer)

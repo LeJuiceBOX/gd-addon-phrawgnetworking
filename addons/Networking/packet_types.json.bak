@@ -5,17 +5,7 @@
 		"Schema": []
 	},
 	{
-		"Name": "SERVER_SHUTTINGDOWN",
-		"MaxBytes": 0,
-		"Schema": []
-	},
-	{
-		"Name": "SERVER_ERROR",
-		"MaxBytes": 0,
-		"Schema": []
-	},
-	{
-		"Name": "CHAT_SEND",
+		"Name": "CHAT",
 		"MaxBytes": 256,
 		"Schema": [
 			{
@@ -26,8 +16,8 @@
 		]
 	},
 	{
-		"Name": "CHAT_RELAY",
-		"MaxBytes": 256,
+		"Name": "NEW_PACKET",
+		"MaxBytes": 0,
 		"Schema": []
 	}
 ]

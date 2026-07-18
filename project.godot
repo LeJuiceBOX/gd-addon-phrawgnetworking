@@ -24,6 +24,10 @@ Network="*uid://buajhqk6fqalr"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/Networking/plugin.cfg")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
