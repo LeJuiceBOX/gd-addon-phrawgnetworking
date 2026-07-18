@@ -4,7 +4,7 @@ class_name ServerNetworkInterface extends BaseNetworkInterface
 var clients: Array[ENetPacketPeer] = []
 
 func send_packet_reliable(peer : ENetPacketPeer, packet_type : String, data_to_encode : Array = []):
-	_send_packet_raw(peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.PacketFlag.RELIABLE)
+	_send_packet_raw(peer,0,PacketHandler.serialize(packet_type,data_to_encode),Network.TransportType.RELIABLE)
 
 ####################################################################################################################
 
