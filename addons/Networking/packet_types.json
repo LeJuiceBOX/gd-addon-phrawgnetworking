@@ -1,5 +1,10 @@
 [
 	{
+		"Name": "CONNECTION_ESTABLISHED",
+		"MaxBytes": 4,
+		"Schema": []	
+	},
+	{
 		"Name": "CHAT",
 		"MaxBytes": 256,
 		"Schema": [
@@ -10,14 +15,4 @@
 			}
 		]
 	},
-	{
-		"Name": "CLIENT_CONNECT",
-		"MaxBytes": 4,
-		"Schema": [
-			{
-				"Name": "id",
-				"Type": "U8"
-			}
-		]	
-	}
 ]

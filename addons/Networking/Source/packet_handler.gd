@@ -30,7 +30,6 @@ static var _raw_packet_defs : Array
 static var def_name_map : Dictionary[String,PacketDefinition]
 
 func _init() -> void:
-	print("Hello!")
 	var file = FileAccess.open("res://Networking/packet_types.json",FileAccess.ModeFlags.READ)
 	_raw_packet_defs = JSON.parse_string(file.get_as_text())
 	file.close()

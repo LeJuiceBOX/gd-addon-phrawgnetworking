@@ -11,8 +11,13 @@ config_version=5
 [application]
 
 config/name="gd-ext-phrawfnetworking"
+run/main_scene="uid://b3s4p13ecd47u"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Network="*uid://buajhqk6fqalr"
 
 [display]
 

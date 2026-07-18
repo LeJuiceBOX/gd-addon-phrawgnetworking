@@ -19,7 +19,7 @@ var is_active : bool = false
 var _is_server : bool = false
 var _packet_info : Array
 
-enum PacketFlag {
+enum TransportType {
 	RELIABLE = ENetPacketPeer.FLAG_RELIABLE,
 	UNRELIABLE = ENetPacketPeer.FLAG_UNRELIABLE_FRAGMENT,
 	UNSEQUENCED = ENetPacketPeer.FLAG_UNSEQUENCED
@@ -32,6 +32,7 @@ func log(service_name : String, msg : String, color : Color = Color.WHITE):
 	print_rich("[color=#%s][%s][/color] %s" % [color.to_html(false), service_name, msg])
 
 func start_server(ip : String = "127.0.0.1", port : int = 7777):
+	print("Starting server...")
 	packet_handler = PacketHandler.new()
 	connection = ENetConnection.new()
 	get_window().title = "SERVER"
@@ -39,14 +40,14 @@ func start_server(ip : String = "127.0.0.1", port : int = 7777):
 	if c != OK:
 		push_error("host failed")
 		return
-	print("Hosting at "+str(ip)+":"+str(port)+" with connection "+str(connection)+".")
+	print("Hosting at "+str(ip)+":"+str(port)+"!")
 	_is_server = true
 	is_active = true
 	_current_interface = ServerNetworkInterface.new()
 	
 func start_client(connect_to_ip : String = "127.0.0.1", connect_to_port : int = 7777):
+	print("Starting client...")
 	packet_handler = PacketHandler.new()
-	print('Created')
 	connection = ENetConnection.new()
 	get_window().title = "CLIENT"
 	var c = connection.create_host(1)

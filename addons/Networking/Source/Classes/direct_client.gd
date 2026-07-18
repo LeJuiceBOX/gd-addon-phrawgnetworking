@@ -1,4 +1,4 @@
-# This is a representation of a client connected to the server.
+# This is a representation of a peer which you can directly interact with.
 class_name DirectClient extends Client
 
 var peer: ENetPacketPeer
