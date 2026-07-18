@@ -11,7 +11,7 @@ const MAX_EVENTS_PER_TICK = 64
 @abstract func _event_receive(packet: Packet)
 @abstract func _event_error(peer: ENetPacketPeer, data: int, channel: int)
 
-func _send_packet_raw(peer : ENetPacketPeer, channel : int, bytes : PackedByteArray, flag : Network.PacketFlag):
+func _send_packet_raw(peer : ENetPacketPeer, channel : int, bytes : PackedByteArray, flag : Network.TransportType):
 	peer.send(channel,bytes,flag)
 
 ## Call this on a fixed timestep, handles the recieved packets since last poll.
