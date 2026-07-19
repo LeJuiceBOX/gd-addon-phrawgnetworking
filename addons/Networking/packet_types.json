@@ -49,5 +49,19 @@
 				"Length": 256
 			}
 		]
+	},
+	{
+		"Name": "CHAT_RELAY",
+		"MaxBytes": 255,
+		"Schema": [
+			{
+				"Name": "from_cid",
+				"Type": "U8"
+			},
+			{
+				"Name": "message",
+				"Type": "STRING_UTF8"
+			}
+		]
 	}
 ]

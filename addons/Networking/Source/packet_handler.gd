@@ -39,14 +39,14 @@ enum DataType {
 }
 
 const DataTypeMap : Dictionary = {
-	"8" = DataType.INT_8,
-	"16" = DataType.INT_16,
-	"32" = DataType.INT_32,
-	"64" = DataType.INT_64,
 	"U8" = DataType.UINT_8,
 	"U16" = DataType.UINT_16,
 	"U32" = DataType.UINT_32,
 	"U64" = DataType.UINT_64,
+	"8" = DataType.INT_8,
+	"16" = DataType.INT_16,
+	"32" = DataType.INT_32,
+	"64" = DataType.INT_64,
 	"HALF" = DataType.HALF,
 	"FLOAT" = DataType.FLOAT,
 	"DOUBLE" = DataType.DOUBLE,
