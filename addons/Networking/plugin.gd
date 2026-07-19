@@ -9,6 +9,8 @@ var _panel_instance : Control
 func _enter_tree() -> void:
 	_panel_instance = MAIN_PANEL.instantiate()
 	EditorInterface.get_editor_main_screen().add_child(_panel_instance)
+	add_autoload_singleton("Network","res://addons/Networking/Library/network_singleton.gd")
+	add_autoload_singleton("PacketTypes","res://addons/Networking/Editor/packet_types.gd")
 	_make_visible(false)
 
 
@@ -16,6 +18,8 @@ func _exit_tree() -> void:
 	if is_instance_valid(_panel_instance):
 		_panel_instance.queue_free()
 	_panel_instance = null
+	remove_autoload_singleton("Network")
+	remove_autoload_singleton("PacketTypes")
 
 
 func _has_main_screen() -> bool:

@@ -10,7 +10,7 @@ signal on_player_removed(cid: int)
 signal on_local_connect_attempt()
 signal on_local_connect_fail(err)
 signal on_local_connect_success(cid: int)
-			
+
 var client_interface : ClientNetworkInterface :
 	get():
 		assert(is_active,"Network is not active yet, you cannot read this variable yet.")
@@ -25,7 +25,7 @@ var connection : ENetConnection
 var packet_handler : PacketHandler
 var statistics : NetworkStatistics = NetworkStatistics.new()
 
-var _current_interface : _NetworkInterface
+var _current_interface : NetworkInterface
 var is_active : bool = false
 var is_server : bool = false
 var _packet_info : Array
@@ -43,14 +43,14 @@ func __on_packet_recieved(packet: Packet):
 				pass
 	else:
 		match packet.type:
-			"CONNECTION_ESTABLISHED":
+			PacketTypes.CONNECTION_ESTABLISHED:
 				client_interface.local_cid = packet.data.get("cid")
 				on_local_connect_success.emit(client_interface.local_cid)
 				Network.log("ClientNetworkInterface","Successfully connected to the server. [color=GRAY](cid: [b]"+str(client_interface.local_cid)+"[/b])[/color]")
-			"CLIENT_ADDED":
+			PacketTypes.CLIENT_ADDED:
 				on_player_added.emit(packet.data.get("cid"))
 				Network.log("ClientNetworkInterface","Another client joined the server. [color=GRAY](cid: [b]"+str(packet.data.get("cid"))+"[/b])[/color]")
-			"CLIENT_REMOVED":
+			PacketTypes.CLIENT_REMOVED:
 				on_player_removed.emit(packet.data.get("cid"))
 				Network.log("ClientNetworkInterface","A client left the server. [color=GRAY](cid: [b]"+str(packet.data.get("cid"))+"[/b])[/color]")
 
@@ -106,7 +106,7 @@ func _physics_process(delta: float) -> void:
 				statistics.sample_peer(ci.server_peer)
 
 
-func get_current_interface() -> _NetworkInterface:
+func get_current_interface() -> NetworkInterface:
 	assert(is_active,"Network is not active yet, you cannot use this function yet.")
 	return _current_interface
 

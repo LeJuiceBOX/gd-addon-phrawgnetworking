@@ -1,4 +1,4 @@
-@abstract class_name _NetworkInterface
+@abstract class_name NetworkInterface
 
 var active : bool = false
 

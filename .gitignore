@@ -4,3 +4,5 @@
 
 #custom
 *.zip
+/addons/FileIndex/
+/addons/script_editor_clone/

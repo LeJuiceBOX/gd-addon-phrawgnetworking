@@ -1,5 +1,5 @@
 ## SERVER INTERFACE
-class_name ServerNetworkInterface extends _NetworkInterface
+class_name ServerNetworkInterface extends NetworkInterface
 
 var clients: Array[NetworkConnection] = []
 
@@ -9,10 +9,10 @@ var _peer_to_client_map : Dictionary[ENetPacketPeer,NetworkConnection]
 
 func _event_connect(peer: ENetPacketPeer, data: int, channel: int):
 	var c = NetworkConnection.new(peer,"UNNAMED")
-	send_reliable(peer,"CONNECTION_ESTABLISHED",[c.cid])
+	send_reliable(peer,PacketTypes.CONNECTION_ESTABLISHED,[c.cid])
 	_peer_to_client_map.set(peer,c)
 	clients.append(c)
-	send_reliable_except(c.peer,"CLIENT_ADDED",[c.cid])
+	send_reliable_except(c.peer,PacketTypes.CLIENT_ADDED,[c.cid])
 	Network.on_player_added.emit(c.cid)
 
 func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
@@ -20,7 +20,7 @@ func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
 	var cid = c.cid
 	clients.erase(c)
 	_peer_to_client_map.erase(peer)
-	send_reliable_all("CLIENT_REMOVED",[cid])
+	send_reliable_all(PacketTypes.CLIENT_REMOVED,[cid])
 	Network.on_player_removed.emit(cid)
 
 func _event_receive(packet : Packet):

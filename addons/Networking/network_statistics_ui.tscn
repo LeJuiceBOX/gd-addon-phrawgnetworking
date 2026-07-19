@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://480rjpwihm10"]
 
-[ext_resource type="Script" uid="uid://dgx3mee5wroqn" path="res://addons/Networking/Source/network_statistics_ui.gd" id="1_w5elg"]
+[ext_resource type="Script" uid="uid://dgx3mee5wroqn" path="res://addons/Networking/Library/Statistics/network_statistics_ui.gd" id="1_w5elg"]
 
 [node name="Control" type="Control" unique_id=1231450509]
 layout_mode = 3

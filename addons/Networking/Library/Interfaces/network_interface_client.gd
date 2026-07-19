@@ -1,5 +1,5 @@
 # CLIENT INTERFACE
-class_name ClientNetworkInterface extends _NetworkInterface
+class_name ClientNetworkInterface extends NetworkInterface
 
 var server_peer: ENetPacketPeer
 var local_cid: int
