@@ -6,9 +6,8 @@ var local_cid: int
 
 ####################################################################################################################
 ## Fires when the server acknowledges the peers connection.
+signal on_connection_attempt()
 signal on_connection_established()
-signal on_player_added()
-signal on_player_removed()
 
 ####################################################################################################################
 
@@ -27,16 +26,14 @@ func _init(server_peer : ENetPacketPeer) -> void:
 	self.server_peer = server_peer
 
 func _event_connect(peer: ENetPacketPeer, data: int, channel: int):
-	print(str(peer)," connected!")
+	pass
 
 func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
-	print(str(peer)," disconnect!")
+	pass
 
 func _event_receive(packet : Packet):
-	if packet.type == "CONNECTION_ESTABLISHED":
-		local_cid = packet.data.get("cid")
-		Network.log("ClientNetworkInterface","Successfully connected to the server with cid "+str(local_cid)+"!",Color.GREEN)
-		on_connection_established.emit()
+	pass
+	
 	#print("Recieved packet: "+str(packet.type))
 	
 func _event_error(peer: ENetPacketPeer, data: int, channel: int):

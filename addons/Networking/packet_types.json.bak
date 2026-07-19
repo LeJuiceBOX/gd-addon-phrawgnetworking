@@ -13,7 +13,7 @@
 	{
 		"Name": "SERVER_SHUTTINGDOWN",
 		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nThis packet is sent when the server closes the application, tells the client the connection should be closed. ",
-		"MaxBytes": 0,
+		"MaxBytes": 1,
 		"Schema": []
 	},
 	{
@@ -28,14 +28,51 @@
 		]
 	},
 	{
+		"Name": "CLIENT_DISCONNECT",
+		"_description": "Broadcasted to all clients to notify everyone of a client disconnecting from the server.",
+		"MaxBytes": 32,
+		"Schema": [
+			{
+				"Name": "cid",
+				"Type": "U8"
+			}
+		]
+	},
+	{
+		"Name": "CLIENT_CONNECT",
+		"_description": "Broadcasted to all clients to notify them of a new client joining the server.",
+		"MaxBytes": 0,
+		"Schema": [
+			{
+				"Name": "cid",
+				"Type": "U8"
+			}
+		]
+	},
+	{
 		"Name": "CHAT_MESSAGE",
-		"_description": "Used to send a chat request to the server. Packet is verified and relayed to other clients.",
+		"_description": "Sent by the client to request that the server relays a message to everyone else on the server.",
 		"MaxBytes": 256,
 		"Schema": [
 			{
 				"Name": "message",
 				"Type": "STRING",
 				"Length": 256
+			}
+		]
+	},
+	{
+		"Name": "CHAT_RELAY",
+		"_description": "Once a [color=LIGHTBLUE][b]CHAT_MESSAGE[/b][/color] packet is recieved by the server, it will determine the client id of the sending peer and relay this packet to all clients EXCEPT the sending peer.",
+		"MaxBytes": 255,
+		"Schema": [
+			{
+				"Name": "from_cid",
+				"Type": "U8"
+			},
+			{
+				"Name": "message",
+				"Type": "STRING_UTF8"
 			}
 		]
 	}

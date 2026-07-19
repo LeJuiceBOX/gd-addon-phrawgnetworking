@@ -8,6 +8,10 @@ extends Control
 ## Reordering or removing a packet therefore renumbers the wire protocol. Those
 ## actions apply immediately and report the resulting id changes in the status bar.
 
+## Lower bound for a packet's MaxBytes. A packet must be able to carry at least
+## its type id byte, so zero is never a valid budget.
+const MIN_MAX_BYTES := 1
+
 var _doc : PacketTypesDocument
 
 var _dirty := false
@@ -238,7 +242,7 @@ func _build_detail_pane(theme_: Theme) -> Control:
 
 	grid.add_child(_make_label("Max bytes"))
 	_max_bytes_spin = SpinBox.new()
-	_max_bytes_spin.min_value = 0
+	_max_bytes_spin.min_value = MIN_MAX_BYTES
 	_max_bytes_spin.max_value = 1048576
 	_max_bytes_spin.step = 1
 	_max_bytes_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -543,7 +547,7 @@ func _bind_detail() -> void:
 	_updating_ui = true
 	var p : Dictionary = _doc.packets[_selected]
 	_name_edit.text = str(p.get("Name", ""))
-	_max_bytes_spin.value = int(p.get("MaxBytes", 0))
+	_max_bytes_spin.value = maxi(int(p.get("MaxBytes", MIN_MAX_BYTES)), MIN_MAX_BYTES)
 	# Selecting a different packet always returns to the rendered view, so the
 	# editor never shows one packet's raw source next to another's name.
 	_description_editing = false
@@ -627,7 +631,7 @@ func _on_max_bytes_changed(value: float) -> void:
 	if _updating_ui or _selected < 0:
 		return
 	_mark_dirty()
-	_doc.packets[_selected]["MaxBytes"] = int(value)
+	_doc.packets[_selected]["MaxBytes"] = maxi(int(value), MIN_MAX_BYTES)
 
 
 func _rebuild_schema_rows() -> void:

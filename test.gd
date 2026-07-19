@@ -2,7 +2,7 @@ extends Node
 
 func _ready() -> void:
 	var args = OS.get_cmdline_args()
-	print(args)
+	#print(args)
 	if args.has("--server"):
 		Network.start_server()
 		%Label.text = "[color=ORANGE]SERVER"

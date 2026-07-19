@@ -6,7 +6,7 @@ var cid: int
 var display_name: String
 var peer: ENetPacketPeer:
 	get():
-		assert(Network.is_server,"You cant access peer from client context.")
+		assert(Network.is_server,"You cant access peer from a client context.")
 		return peer
 
 func _init(peer: ENetPacketPeer, display_name) -> void:
