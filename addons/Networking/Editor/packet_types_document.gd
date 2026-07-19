@@ -18,7 +18,7 @@ const LENGTH_REQUIRED_TYPES : PackedStringArray = ["DATA"]
 
 ## Fallback used only if packet_handler.gd cannot be read or parsed.
 const FALLBACK_TYPES : PackedStringArray = [
-	"8", "U8", "16", "U16", "32", "U32", "64", "U64",
+	"8", "16", "32", "64", "U8", "U16", "U32", "U64",
 	"HALF", "FLOAT", "DOUBLE", "STRING", "STRING_UTF8", "DATA", "VARIANT",
 ]
 
@@ -133,13 +133,14 @@ func _normalize_packet(entry: Dictionary) -> Dictionary:
 			})
 	return {
 		"Name": str(entry.get("Name", "")),
+		"_description": str(entry.get("_description", "")),
 		"MaxBytes": int(entry.get("MaxBytes", 0)),
 		"Schema": schema,
 	}
 
 
 func new_packet(name_hint: String = "NEW_PACKET") -> Dictionary:
-	return {"Name": _unique_name(name_hint), "MaxBytes": 0, "Schema": []}
+	return {"Name": _unique_name(name_hint), "_description": "", "MaxBytes": 0, "Schema": []}
 
 
 func new_schema_entry() -> Dictionary:
@@ -229,6 +230,11 @@ func save_to_disk() -> bool:
 		var p : Dictionary = packets[i]
 		out += "\t{\n"
 		out += "\t\t\"Name\": %s,\n" % JSON.stringify(str(p.get("Name", "")))
+		# Written straight after Name so it reads as a header for the definition.
+		# Omitted entirely when blank, to keep untouched packets tidy.
+		var pdesc := str(p.get("_description", ""))
+		if pdesc != "":
+			out += "\t\t\"_description\": %s,\n" % JSON.stringify(pdesc)
 		out += "\t\t\"MaxBytes\": %d,\n" % int(p.get("MaxBytes", 0))
 
 		var schema : Array = p.get("Schema", [])

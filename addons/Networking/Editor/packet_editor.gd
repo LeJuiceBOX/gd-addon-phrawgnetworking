@@ -14,6 +14,8 @@ var _dirty := false
 var _backup_made := false
 var _selected := -1
 var _updating_ui := false
+## Notes start read-only; the toggle swaps to the raw editable source.
+var _description_editing := false
 
 # Layout
 var _packet_list : ItemList
@@ -21,6 +23,9 @@ var _detail_root : VBoxContainer
 var _empty_hint : Label
 var _name_edit : LineEdit
 var _max_bytes_spin : SpinBox
+var _description_edit : TextEdit
+var _description_view : RichTextLabel
+var _description_toggle : Button
 var _type_id_label : Label
 var _schema_rows : VBoxContainer
 var _schema_empty : Label
@@ -245,6 +250,56 @@ func _build_detail_pane(theme_: Theme) -> Control:
 	_type_id_label.modulate = Color(1, 1, 1, 0.7)
 	grid.add_child(_type_id_label)
 
+	var desc_header := HBoxContainer.new()
+	desc_header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var desc_label := _make_label("Notes")
+	desc_header.add_child(desc_label)
+	grid.add_child(desc_header)
+
+	# View and edit states occupy the same cell; exactly one is visible.
+	# The view state is a RichTextLabel because only it renders BBCode, and the
+	# edit state is a TextEdit because only it accepts input.
+	var desc_cell := VBoxContainer.new()
+	desc_cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_cell.add_theme_constant_override("separation", 4)
+	grid.add_child(desc_cell)
+
+	var desc_row := HBoxContainer.new()
+	desc_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_row.add_theme_constant_override("separation", 6)
+	desc_cell.add_child(desc_row)
+
+	var desc_stack := VBoxContainer.new()
+	desc_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_row.add_child(desc_stack)
+
+	_description_view = RichTextLabel.new()
+	_description_view.bbcode_enabled = true
+	_description_view.fit_content = true
+	_description_view.scroll_active = false
+	_description_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_description_view.custom_minimum_size = Vector2(0, 0)
+	# Match the plain look of the Type id row rather than a framed input.
+	_description_view.add_theme_constant_override("line_separation", 2)
+	_description_view.modulate = Color(1, 1, 1, 0.7)
+	desc_stack.add_child(_description_view)
+
+	_description_edit = TextEdit.new()
+	_description_edit.placeholder_text = "What this packet is for, when it's sent, anything worth remembering."
+	_description_edit.custom_minimum_size = Vector2(0, 72)
+	_description_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_description_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	_description_edit.scroll_fit_content_height = true
+	_description_edit.visible = false
+	_description_edit.text_changed.connect(_on_description_changed)
+	desc_stack.add_child(_description_edit)
+
+	_description_toggle = Button.new()
+	_description_toggle.flat = true
+	_description_toggle.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_description_toggle.pressed.connect(_on_description_toggle)
+	desc_row.add_child(_description_toggle)
+
 	_detail_root.add_child(HSeparator.new())
 
 	# Schema header
@@ -354,6 +409,35 @@ func _on_revert_pressed() -> void:
 # Packet list
 # ---------------------------------------------------------------------------
 
+## Removes BBCode tags so text is safe for plain-text contexts like tooltips,
+## which render markup literally. Only well-formed [tag] and [/tag] spans are
+## stripped; a stray bracket is left alone, matching how RichTextLabel shows it.
+## The [lb] and [rb] escapes become their literal brackets.
+## Compiled once and reused; refreshing the list would otherwise recompile
+## the pattern for every packet.
+static var _bbcode_regex : RegEx = null
+
+
+static func strip_bbcode(text: String) -> String:
+	if text.find("[") == -1:
+		return text
+
+	# [lb] and [rb] match the tag pattern below, so swap them for placeholders
+	# first and restore them afterwards. These are private-use codepoints, so
+	# they cannot collide with anything the user typed.
+	var lb_mark := char(0xE000)
+	var rb_mark := char(0xE001)
+	var protected := text.replace("[lb]", lb_mark).replace("[rb]", rb_mark)
+
+	if _bbcode_regex == null:
+		_bbcode_regex = RegEx.new()
+		# A closing tag, or an opening tag with optional =value / attributes.
+		_bbcode_regex.compile("\\[/?[a-zA-Z][a-zA-Z0-9_]*(=[^\\]]*)?(\\s+[^\\]]*)?\\]")
+	var stripped := _bbcode_regex.sub(protected, "", true)
+
+	return stripped.replace(lb_mark, "[").replace(rb_mark, "]")
+
+
 func _refresh_list() -> void:
 	_packet_list.clear()
 	for i in _doc.packets.size():
@@ -362,9 +446,17 @@ func _refresh_list() -> void:
 		var field_count : int = (p.get("Schema", []) as Array).size()
 		var label := "%d  %s" % [i, pname if pname != "" else "(unnamed)"]
 		_packet_list.add_item(label)
-		_packet_list.set_item_tooltip(i, "%s\nid %d, %d field%s" % [
+		var tooltip := "%s\nid %d, %d field%s" % [
 			pname, i, field_count, "" if field_count == 1 else "s"
-		])
+		]
+		# Tooltips render as plain text, so tags would otherwise show literally.
+		var pdesc := strip_bbcode(str(p.get("_description", ""))).strip_edges()
+		if pdesc != "":
+			# Keep the tooltip to a readable size; the full text is in the panel.
+			if pdesc.length() > 240:
+				pdesc = pdesc.substr(0, 240).strip_edges() + "…"
+			tooltip += "\n\n" + pdesc
+		_packet_list.set_item_tooltip(i, tooltip)
 	if _selected >= 0 and _selected < _packet_list.item_count:
 		_packet_list.select(_selected)
 	_refresh_buttons()
@@ -452,6 +544,10 @@ func _bind_detail() -> void:
 	var p : Dictionary = _doc.packets[_selected]
 	_name_edit.text = str(p.get("Name", ""))
 	_max_bytes_spin.value = int(p.get("MaxBytes", 0))
+	# Selecting a different packet always returns to the rendered view, so the
+	# editor never shows one packet's raw source next to another's name.
+	_description_editing = false
+	_refresh_description()
 	_type_id_label.text = "%d  (first byte of every %s packet)" % [
 		_selected, str(p.get("Name", "")) if str(p.get("Name", "")) != "" else "packet"
 	]
@@ -467,6 +563,64 @@ func _on_name_changed(new_text: String) -> void:
 	var label := "%d  %s" % [_selected, new_text if new_text != "" else "(unnamed)"]
 	_packet_list.set_item_text(_selected, label)
 	_refresh_status()
+
+
+func _on_description_toggle() -> void:
+	if _selected < 0:
+		return
+	# Leaving edit mode commits the box, but only marks the document dirty when
+	# the text actually differs, so toggling in and out is not itself an edit.
+	if _description_editing:
+		var current := str(_doc.packets[_selected].get("_description", ""))
+		if _description_edit.text != current:
+			_mark_dirty()
+			_doc.packets[_selected]["_description"] = _description_edit.text
+	_description_editing = not _description_editing
+	_refresh_description()
+	if _description_editing:
+		_description_edit.grab_focus()
+
+
+## Shows either the rendered BBCode or the raw editable source, and syncs the
+## toggle button to match. Never writes to the document.
+func _refresh_description() -> void:
+	if _selected < 0:
+		return
+	var raw := str(_doc.packets[_selected].get("_description", ""))
+	var theme_ := EditorInterface.get_editor_theme()
+
+	_description_edit.visible = _description_editing
+	_description_view.visible = not _description_editing
+
+	if _description_editing:
+		if _description_edit.text != raw:
+			# Assigning text emits text_changed, which would mark the document
+			# dirty for a mere view/edit swap. Suppress it.
+			var was_updating := _updating_ui
+			_updating_ui = true
+			_description_edit.text = raw
+			_updating_ui = was_updating
+		_description_toggle.icon = _safe_icon(theme_, &"StatusSuccess")
+		_description_toggle.text = "" if _description_toggle.icon else "Done"
+		_description_toggle.tooltip_text = "Done editing. Renders the BBCode."
+	else:
+		if raw.strip_edges() == "":
+			# Placeholder, so an empty field still reads as a field.
+			_description_view.text = "[i]No notes.[/i]"
+			_description_view.modulate = Color(1, 1, 1, 0.4)
+		else:
+			_description_view.text = raw
+			_description_view.modulate = Color(1, 1, 1, 0.7)
+		_description_toggle.icon = _safe_icon(theme_, &"Edit")
+		_description_toggle.text = "" if _description_toggle.icon else "Edit"
+		_description_toggle.tooltip_text = "Edit notes. Shows the raw BBCode source."
+
+
+func _on_description_changed() -> void:
+	if _updating_ui or _selected < 0:
+		return
+	_mark_dirty()
+	_doc.packets[_selected]["_description"] = _description_edit.text
 
 
 func _on_max_bytes_changed(value: float) -> void:

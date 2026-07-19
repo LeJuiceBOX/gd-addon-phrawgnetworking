@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="gd-ext-phrawfnetworking"
+config/name="gd-ext-phrawgnetworking"
 run/main_scene="uid://b3s4p13ecd47u"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"

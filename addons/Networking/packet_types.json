@@ -1,21 +1,46 @@
 [
 	{
 		"Name": "CONNECTION_ESTABLISHED",
-		"MaxBytes": 4,
-		"Schema": []
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nThis packet is sent when a player first tries to connect to the server. It tells the client that they successfuly connected to the server and so it can recieve its cid. ",
+		"MaxBytes": 2,
+		"Schema": [
+			{
+				"Name": "cid",
+				"Type": "U8"
+			}
+		]
 	},
 	{
 		"Name": "SERVER_SHUTTINGDOWN",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nThis packet is sent when the server closes the application, tells the client the connection should be closed. ",
 		"MaxBytes": 0,
 		"Schema": []
 	},
 	{
 		"Name": "SERVER_ERROR",
-		"MaxBytes": 0,
-		"Schema": []
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nUsed to send a message to a client for debug perposes.\n\n[b]Examples:[/b]\n- [color=LIGHTBLUE]Transaction failed, not enough funds![/color]\n- [color=LIGHTBLUE]You have been kicked/banned[/color]\n",
+		"MaxBytes": 255,
+		"Schema": [
+			{
+				"Name": "message",
+				"Type": "STRING"
+			}
+		]
 	},
 	{
-		"Name": "CHAT_SEND",
+		"Name": "SYNC_CLIENT_USERNAME",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nAfter the client recieves a [color=WHITE][b]CONNECTION_ESTABLISHED[/b][/color] packet from the server, the client sends this packet to tell the server the player's display name.",
+		"MaxBytes": 32,
+		"Schema": [
+			{
+				"Name": "username",
+				"Type": "STRING_UTF8"
+			}
+		]
+	},
+	{
+		"Name": "CHAT_MESSAGE",
+		"_description": "Used to send a chat request to the server. Packet is verified and relayed to other clients.",
 		"MaxBytes": 256,
 		"Schema": [
 			{
@@ -24,10 +49,5 @@
 				"Length": 256
 			}
 		]
-	},
-	{
-		"Name": "CHAT_RELAY",
-		"MaxBytes": 256,
-		"Schema": []
 	}
 ]

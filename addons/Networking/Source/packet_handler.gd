@@ -40,12 +40,12 @@ enum DataType {
 
 const DataTypeMap : Dictionary = {
 	"8" = DataType.INT_8,
-	"U8" = DataType.UINT_8,
 	"16" = DataType.INT_16,
-	"U16" = DataType.UINT_16,
 	"32" = DataType.INT_32,
-	"U32" = DataType.UINT_32,
 	"64" = DataType.INT_64,
+	"U8" = DataType.UINT_8,
+	"U16" = DataType.UINT_16,
+	"U32" = DataType.UINT_32,
 	"U64" = DataType.UINT_64,
 	"HALF" = DataType.HALF,
 	"FLOAT" = DataType.FLOAT,
@@ -121,6 +121,7 @@ static func serialize(type : String, data_to_encode : Array):
 	# Walk the schema so each value is written by its declared type. If the
 	# schema is empty this loop simply doesn't run, and the packet is just the
 	# 1-byte type id.
+	assert(data_to_encode.size() == def.schema.size(),"Missing or too many elements in data_to_encode.")
 	for i in def.schema.size():
 		var chunk : PacketDataChunk = def.schema[i]
 		var data = data_to_encode[i]

@@ -8,6 +8,30 @@ var _peer_to_client_map : Dictionary[ENetPacketPeer,NetworkConnection]
 func get_client(peer : ENetPacketPeer):
 	return _peer_to_client_map.get(peer)
 
+####################################################################################################################
+
+func _event_connect(peer: ENetPacketPeer, data: int, channel: int):
+	print(str(peer)," connected!")
+	var c = NetworkConnection.new(peer,"321")
+	_peer_to_client_map.set(peer,c)
+	clients.append(c)
+	send_reliable(peer,"CONNECTION_ESTABLISHED",[c.cid])
+
+func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
+	print(str(peer)," disconnect!")
+	var c = get_client(peer)
+	clients.erase(c)
+	_peer_to_client_map.erase(peer)
+
+func _event_receive(packet : Packet):
+	#print("Recieved packet: "+str(packet.type))
+	pass
+	
+func _event_error(peer: ENetPacketPeer, data: int, channel: int):
+	pass
+
+#############################################################################################################
+
 func send_unreliable(peer : ENetPacketPeer, packet_type: String, data_to_encode: Array = []):
 	send_raw(peer,0,Network.TransportType.UNRELIABLE,PacketHandler.serialize(packet_type,data_to_encode))
 
@@ -16,7 +40,6 @@ func send_reliable(peer : ENetPacketPeer, packet_type : String, data_to_encode :
 
 func send_unsequenced(peer : ENetPacketPeer, packet_type: String, data_to_encode: Array = []):
 	send_raw(peer,0,Network.TransportType.UNSEQUENCED,PacketHandler.serialize(packet_type,data_to_encode))
-
 
 func send_reliable_all(packet_type: String, data_to_encode: Array = []):
 	var packet = PacketHandler.serialize(packet_type,data_to_encode)
@@ -50,25 +73,3 @@ func send_unsequenced_except(except_peer : ENetPacketPeer, packet_type: String, 
 	for connection : NetworkConnection in clients:
 		if connection.peer == except_peer: continue
 		send_raw(connection.peer,0,Network.TransportType.UNSEQUENCED,packet)	
-
-####################################################################################################################
-
-func _event_connect(peer: ENetPacketPeer, data: int, channel: int):
-	print(str(peer)," connected!")
-	var c = NetworkConnection.new(peer,"321")
-	_peer_to_client_map.set(peer,c)
-	clients.append(c)
-	send_reliable(peer,"CONNECTION_ESTABLISHED")
-
-func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
-	print(str(peer)," disconnect!")
-	var c = get_client(peer)
-	clients.erase(c)
-	_peer_to_client_map.erase(peer)
-
-func _event_receive(packet : Packet):
-	#print("Recieved packet: "+str(packet.type))
-	pass
-	
-func _event_error(peer: ENetPacketPeer, data: int, channel: int):
-	pass

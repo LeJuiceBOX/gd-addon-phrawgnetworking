@@ -2,6 +2,7 @@
 class_name ClientNetworkInterface extends _NetworkInterface
 
 var server_peer: ENetPacketPeer
+var local_cid: int
 
 ####################################################################################################################
 ## Fires when the server acknowledges the peers connection.
@@ -33,9 +34,10 @@ func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):
 
 func _event_receive(packet : Packet):
 	if packet.type == "CONNECTION_ESTABLISHED":
-		print("Successfuly connected to the server!")
+		local_cid = packet.data.get("cid")
+		Network.log("ClientNetworkInterface","Successfully connected to the server with cid "+str(local_cid)+"!",Color.GREEN)
 		on_connection_established.emit()
-	print("Recieved packet: "+str(packet.type))
+	#print("Recieved packet: "+str(packet.type))
 	
 func _event_error(peer: ENetPacketPeer, data: int, channel: int):
 	print("Error")
