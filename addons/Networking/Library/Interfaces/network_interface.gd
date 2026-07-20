@@ -13,13 +13,17 @@ const MAX_EVENTS_PER_TICK = 64
 ## outbound payload bytes need to be counted. The type name is recovered from
 ## the leading type-id byte written by PacketHandler.serialize().
 func send_raw(peer : ENetPacketPeer, channel: int, flag: Network.TransportType, bytes: PackedByteArray):
+	# serialize() returns an empty array when the local side isn't permitted to
+	# send this type. Sending it would put a 0-byte packet on the wire.
+	if bytes.is_empty():
+		return
 	peer.send(channel,bytes,flag)
 	Network.statistics.record_out_typed(_type_name_of(bytes), bytes.size())
 	# on_packet_sent was declared but never emitted, so the UI packet log only
 	# ever showed inbound traffic. Deserializing our own bytes back into a
 	# Packet is the cheapest way to give the log the same shape it expects.
 	if not Network.on_packet_sent.get_connections().is_empty():
-		var sent_packet = PacketHandler.deserialize(peer, channel, bytes)
+		var sent_packet = PacketHandler.deserialize(peer, channel, bytes, false)
 		if sent_packet != null:
 			Network.on_packet_sent.emit(sent_packet)
 

@@ -1,7 +1,9 @@
 [
 	{
 		"Name": "CONNECTION_ESTABLISHED",
-		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nThis packet is sent when a player first tries to connect to the server. It tells the client that they successfuly connected to the server and so it can recieve its cid. ",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nThis packet is sent when a player first tries to connect to the server. It tells the client that they successfuly connected to the server and so it can recieve its cid.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]cid[/color] - The client id that the server assigned the client recieving this packet.",
+		"SentByServer": true,
+		"SentByClient": false,
 		"MaxBytes": 2,
 		"Schema": [
 			{
@@ -13,12 +15,16 @@
 	{
 		"Name": "SERVER_SHUTTINGDOWN",
 		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nThis packet is sent when the server closes the application, tells the client the connection should be closed. ",
+		"SentByServer": true,
+		"SentByClient": false,
 		"MaxBytes": 1,
 		"Schema": []
 	},
 	{
 		"Name": "SERVER_ERROR",
-		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nUsed to send a message to a client for debug perposes.\n\n[b]Examples:[/b]\n- [color=LIGHTBLUE]Transaction failed, not enough funds![/color]\n- [color=LIGHTBLUE]You have been kicked/banned[/color]\n",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nUsed to send a message to a client for debug perposes.\n\n[b]Examples:[/b]\n- [color=LIGHTBLUE]Transaction failed, not enough funds![/color]\n- [color=LIGHTBLUE]You have been kicked/banned[/color]\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]message[/color] - The error message sent from the server.\n",
+		"SentByServer": true,
+		"SentByClient": false,
 		"MaxBytes": 255,
 		"Schema": [
 			{
@@ -28,19 +34,10 @@
 		]
 	},
 	{
-		"Name": "CLIENT_DISCONNECT",
-		"_description": "Broadcasted to all clients to notify everyone of a client disconnecting from the server.",
-		"MaxBytes": 32,
-		"Schema": [
-			{
-				"Name": "cid",
-				"Type": "U8"
-			}
-		]
-	},
-	{
-		"Name": "CLIENT_CONNECT",
-		"_description": "Broadcasted to all clients to notify them of a new client joining the server.",
+		"Name": "CLIENT_ADDED",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nBroadcasted to all clients to notify them of a new client joining the server.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]cid[/color] - The [b]client ID[/b] of the client who joined the server.",
+		"SentByServer": true,
+		"SentByClient": false,
 		"MaxBytes": 0,
 		"Schema": [
 			{
@@ -50,8 +47,78 @@
 		]
 	},
 	{
+		"Name": "CLIENT_REMOVED",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nBroadcasted to all clients to notify everyone of a client disconnecting from the server.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]cid[/color] - The [b]client ID[/b] of the client who left the server.",
+		"SentByServer": true,
+		"SentByClient": false,
+		"MaxBytes": 2,
+		"Schema": [
+			{
+				"Name": "cid",
+				"Type": "U8"
+			}
+		]
+	},
+	{
+		"Name": "OBJECT_SYNC_PROP",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nUsed by the [b]server[/b] to tell clients to update a property.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]net_id[/color] \t\t\t\t\t- The [b]net_id[/b] of the object to sync the property to.\n[color=YELLOW]property_name[/color] \t- The name of the property to edit\n[color=YELLOW]property_value[/color]\t- The new value of the property",
+		"SentByServer": true,
+		"SentByClient": true,
+		"MaxBytes": 8,
+		"Schema": [
+			{
+				"Name": "net_id",
+				"Type": "8"
+			},
+			{
+				"Name": "property_name",
+				"Type": "STRING_UTF8"
+			},
+			{
+				"Name": "property_value",
+				"Type": "VARIANT"
+			}
+		]
+	},
+	{
+		"Name": "OBJECT_SYNC_CREATE",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nUsed by the [color=WHITE][b]server[/b][/color] to tell the client to create a [color=SALMON][b]RemoteNetworkObject[/b][/color] on their machine.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]object_net_id[/color] - The [b]net_id[/b] of the object to create\n[color=YELLOW]parent_net_id[/color] - The [b]net_id[/b] of the object to parent this new object to\n[color=YELLOW]object_type[/color]\t\t- The object type to create",
+		"SentByServer": true,
+		"SentByClient": true,
+		"MaxBytes": 16,
+		"Schema": [
+			{
+				"Name": "object_net_id",
+				"Type": "8"
+			},
+			{
+				"Name": "parent_net_id",
+				"Type": "8"
+			},
+			{
+				"Name": "object_type",
+				"Type": "U8"
+			}
+		]
+	},
+	{
+		"Name": "OBJECT_SYNC_REQUEST",
+		"_description": "[color=ORANGE][b]This is a builtin packet.[/b][/color]\nUsed by the [color=WHITE][b]client[/b][/color] to request that the server send them a [color=LIGHTBLUE][b]OBJECT_SYNC_CREATE[/b][/color] packet.\nThis is required when the client recieves an [color=LIGHTBLUE][b]OBJECT_SYNC_PROP[/b][/color] packet for an object that doesnt exist for them.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]net_id[/color] - The [b]net_id[/b] of the object the client doesnt have.",
+		"SentByServer": true,
+		"SentByClient": true,
+		"MaxBytes": 0,
+		"Schema": [
+			{
+				"Name": "net_id",
+				"Type": "8"
+			}
+		]
+	},
+	{
 		"Name": "CHAT_MESSAGE",
-		"_description": "Sent by the client to request that the server relays a message to everyone else on the server.",
+		"_description": "Sent by the client to request that the server relays a message to everyone else on the server.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]message[/color] - The message that the client would like to send.",
+		"SentByServer": false,
+		"SentByClient": true,
 		"MaxBytes": 256,
 		"Schema": [
 			{
@@ -63,7 +130,9 @@
 	},
 	{
 		"Name": "CHAT_RELAY",
-		"_description": "Once a [color=LIGHTBLUE][b]CHAT_MESSAGE[/b][/color] packet is recieved by the server, it will determine the client id of the sending peer and relay this packet to all clients EXCEPT the sending peer.",
+		"_description": "Once a [color=LIGHTBLUE][b]CHAT_MESSAGE[/b][/color] packet is recieved by the server, it will determine the client id of the sending peer and relay this packet to all clients EXCEPT the sending peer.\n\n[color=GOLD][b]Schema Notes:[/b][/color]\n------------------------------------------------------------------------\n[color=YELLOW]from_cid[/color] - The [b]client ID[/b] of the client who sent the message.\n[color=YELLOW]message[/color] - The message that client sent.\n ",
+		"SentByServer": true,
+		"SentByClient": false,
 		"MaxBytes": 255,
 		"Schema": [
 			{

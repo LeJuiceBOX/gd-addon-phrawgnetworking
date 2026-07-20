@@ -134,13 +134,24 @@ func _normalize_packet(entry: Dictionary) -> Dictionary:
 	return {
 		"Name": str(entry.get("Name", "")),
 		"_description": str(entry.get("_description", "")),
+		# Absent means unrestricted, so a hand-written file that predates these
+		# flags keeps working and no existing packet is silently blocked.
+		"SentByServer": bool(entry.get("SentByServer", true)),
+		"SentByClient": bool(entry.get("SentByClient", true)),
 		"MaxBytes": int(entry.get("MaxBytes", 0)),
 		"Schema": schema,
 	}
 
 
 func new_packet(name_hint: String = "NEW_PACKET") -> Dictionary:
-	return {"Name": _unique_name(name_hint), "_description": "", "MaxBytes": 0, "Schema": []}
+	return {
+		"Name": _unique_name(name_hint),
+		"_description": "",
+		"SentByServer": true,
+		"SentByClient": true,
+		"MaxBytes": 0,
+		"Schema": [],
+	}
 
 
 func new_schema_entry() -> Dictionary:
@@ -200,6 +211,9 @@ func validate() -> PackedStringArray:
 		else:
 			seen_names.append(pname)
 
+		if not bool(p.get("SentByServer", true)) and not bool(p.get("SentByClient", true)):
+			problems.append("%s has both direction toggles off, so nothing can send it." % label)
+
 		var schema : Array = p.get("Schema", [])
 		var seen_fields : Array = []
 		for j in schema.size():
@@ -235,6 +249,10 @@ func save_to_disk() -> bool:
 		var pdesc := str(p.get("_description", ""))
 		if pdesc != "":
 			out += "\t\t\"_description\": %s,\n" % JSON.stringify(pdesc)
+		# Always written, including when true, so the direction of a packet is
+		# readable straight from the file rather than inferred from an absence.
+		out += "\t\t\"SentByServer\": %s,\n" % ("true" if bool(p.get("SentByServer", true)) else "false")
+		out += "\t\t\"SentByClient\": %s,\n" % ("true" if bool(p.get("SentByClient", true)) else "false")
 		out += "\t\t\"MaxBytes\": %d,\n" % int(p.get("MaxBytes", 0))
 
 		var schema : Array = p.get("Schema", [])
