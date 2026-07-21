@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://dfs8ec6428t8w"]
+
+[ext_resource type="PackedScene" uid="uid://480rjpwihm10" path="res://addons/Networking/network_statistics_ui.tscn" id="2_ggxtb"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_a1vo8"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_ggxtb"]
+sky_material = SubResource("ProceduralSkyMaterial_a1vo8")
+
+[sub_resource type="Environment" id="Environment_lueri"]
+background_mode = 2
+sky = SubResource("Sky_ggxtb")
+
+[node name="Server" type="Node3D" unique_id=281406825]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=788923283]
+environment = SubResource("Environment_lueri")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1166969479]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1703116564]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 0.99999994, 0, -1, 0, -4.371139e-08, 6, 0, 0)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=692876771]
+
+[node name="Control" parent="CanvasLayer" unique_id=1231450509 instance=ExtResource("2_ggxtb")]
+modulate = Color(1, 1, 1, 0.37254903)

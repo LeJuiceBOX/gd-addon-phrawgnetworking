@@ -17,8 +17,17 @@ func send_raw(peer : ENetPacketPeer, channel: int, flag: Network.TransportType, 
 	# send this type. Sending it would put a 0-byte packet on the wire.
 	if bytes.is_empty():
 		return
+
+	# Transport is chosen by which send_* method the caller used, so it isn't
+	# visible to serialize(). This is the first point that knows both the
+	# packet and the flag it's going out with.
+	var def := PacketHandler.definition_from_bytes(bytes)
+	if def != null and not PacketHandler.transport_allowed(def, flag):
+		Network.log("NetworkInterface", "'" + def.name + "' is not allowed to be sent as " + PacketHandler.transport_name(flag) + ". Not sent.", Color.ORANGE)
+		return
+
 	peer.send(channel,bytes,flag)
-	Network.statistics.record_out_typed(_type_name_of(bytes), bytes.size())
+	Network.statistics.record_out_typed(def.name if def != null else "UNKNOWN", bytes.size())
 	# on_packet_sent was declared but never emitted, so the UI packet log only
 	# ever showed inbound traffic. Deserializing our own bytes back into a
 	# Packet is the cheapest way to give the log the same shape it expects.
@@ -32,9 +41,7 @@ func send_raw(peer : ENetPacketPeer, channel: int, flag: Network.TransportType, 
 ## Returns "UNKNOWN" if the id isn't in the registry, so stats never assert
 ## on malformed data the way deserialize() would.
 static func _type_name_of(bytes: PackedByteArray) -> String:
-	if bytes.size() < 1:
+	var def := PacketHandler.definition_from_bytes(bytes)
+	if def == null:
 		return "UNKNOWN"
-	var id = bytes[0]
-	if id < 0 or id > PacketHandler.packet_defs.size() - 1:
-		return "UNKNOWN"
-	return PacketHandler.packet_defs[id].name
+	return def.name

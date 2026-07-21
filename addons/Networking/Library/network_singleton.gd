@@ -7,6 +7,7 @@ signal on_player_added(cid: int)
 signal on_player_removed(cid: int)
 # CLIENT signals
 ## Fires on the client when attempting to start the server.
+signal on_new_remote_object(net_id: int, node: NetworkNode3D)
 signal on_local_connect_attempt()
 signal on_local_connect_fail(err)
 signal on_local_connect_success(cid: int)
@@ -24,6 +25,7 @@ var server_interface : ServerNetworkInterface :
 var connection : ENetConnection
 var packet_handler : PacketHandler
 var statistics : NetworkStatistics = NetworkStatistics.new()
+var net_node_registry: Dictionary[int, NetworkNode3D]
 
 var _current_interface : NetworkInterface
 var is_active : bool = false
@@ -53,6 +55,16 @@ func __on_packet_recieved(packet: Packet):
 			PacketTypes.CLIENT_REMOVED:
 				on_player_removed.emit(packet.data.get("cid"))
 				Network.log("ClientNetworkInterface","A client left the server. [color=GRAY](cid: [b]"+str(packet.data.get("cid"))+"[/b])[/color]")
+			PacketTypes.OBJECT_SYNC_CREATE:
+				var assigned_nid = packet.data.get("net_id")
+				var type = packet.data.get("type")
+				var n = NetworkNode3D.new()
+				get_tree().current_scene.add_child(n)
+				var csg = CSGBox3D.new()
+				n.add_child(csg)
+				on_new_remote_object.emit(assigned_nid,n)
+				Network.log("ClientNetworkInterface","A new RemoteNode3D was created.",Color.WEB_GRAY)
+				
 
 	
 func start_server(ip : String = "127.0.0.1", port : int = 7777):
@@ -75,7 +87,6 @@ func start_client(connect_to_ip : String = "127.0.0.1", connect_to_port : int = 
 	statistics.reset()
 	packet_handler = PacketHandler.new()
 	connection = ENetConnection.new()
-	get_window().title = "CLIENT"
 	var c = connection.create_host(1)
 	if c != OK:
 		self.log("Network","Failed to create client.\n[color=LIGHT_RED]"+str(c)+"[/color]")
@@ -87,6 +98,7 @@ func start_client(connect_to_ip : String = "127.0.0.1", connect_to_port : int = 
 	is_server = false
 	is_active = true
 	_current_interface = ClientNetworkInterface.new(server_peer)
+	get_window().title = "CLIENT"
 
 
 func _init() -> void:

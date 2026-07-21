@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://cg0x58fpqlvkx"]
+
+[ext_resource type="Script" uid="uid://dl76r2cp3kq14" path="res://NetObjectTest/Player/net_player.gd" id="1_5t3cl"]
+
+[node name="Player" type="Node3D" unique_id=1925703395]
+script = ExtResource("1_5t3cl")
+metadata/_custom_type_script = "uid://dra7cjxe3cjt4"
+
+[node name="CSGSphere3D" type="CSGSphere3D" parent="." unique_id=137561724]
+radius = 0.2851636

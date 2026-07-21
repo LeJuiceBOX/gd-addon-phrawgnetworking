@@ -9,18 +9,96 @@ class_name PacketTypesDocument
 ## that map makes it appear in the editor without touching this file.
 
 const JSON_PATH := "res://addons/Networking/packet_types.json"
-const HANDLER_PATH := "res://addons/Networking/Source/packet_handler.gd"
+const HANDLER_PATH := "res://addons/Networking/Library/packet_handler.gd"
 
 ## Only these types read a fixed 'Length' out of the schema. Everything else is
 ## either length-prefixed on the wire or a fixed-width primitive, so Length is
 ## ignored by packet_handler and is not shown in the inspector.
-const LENGTH_REQUIRED_TYPES : PackedStringArray = ["DATA"]
+const LENGTH_REQUIRED_TYPES : PackedStringArray = ["BYTES"]
+
+## Only these types carry a 'Bits' array naming the flags packed into them.
+const BITS_REQUIRED_TYPES : PackedStringArray = ["BITMASK"]
+
+## A bitmask is one byte, so it can name at most eight flags.
+const MAX_BITS := 8
 
 ## Fallback used only if packet_handler.gd cannot be read or parsed.
 const FALLBACK_TYPES : PackedStringArray = [
-	"8", "16", "32", "64", "U8", "U16", "U32", "U64",
-	"HALF", "FLOAT", "DOUBLE", "STRING", "STRING_UTF8", "DATA", "VARIANT",
+	"INT_8", "INT_16", "INT_32", "INT_64", "U_8", "U_16", "U_32", "U_64",
+	"HALF", "FLOAT", "DOUBLE", "STRING", "STRING_UTF8", "BYTES", "VARIANT",
+	"BITMASK",
 ]
+
+## Wire cost of each type, used for the labels in the schema type dropdown.
+## A negative value marks a variable-size type whose stored number is the
+## size of its length prefix, so the real cost is that prefix plus the payload.
+const TYPE_BYTE_COSTS : Dictionary = {
+	"INT_8": 1, "U_8": 1,
+	"INT_16": 2, "U_16": 2,
+	"INT_32": 4, "U_32": 4,
+	"INT_64": 8, "U_64": 8,
+	"HALF": 2, "FLOAT": 4, "DOUBLE": 8,
+	"STRING": -4, "STRING_UTF8": -4, "VARIANT": -4,
+	# BYTES writes no prefix at all, so its cost is exactly the Length field.
+	"BYTES": 0,
+	# Eight flags folded into a single byte.
+	"BITMASK": 1,
+}
+
+
+## Short precision note for the float types, shown beside their byte cost.
+## Digit counts are decimal significant digits, derived from the IEEE 754
+## significand width: 11, 24 and 53 bits including the implicit leading one.
+const TYPE_PRECISION : Dictionary = {
+	"HALF": "~3 digits, max 65504",
+	"FLOAT": "~7 digits",
+	"DOUBLE": "~16 digits",
+}
+
+## Longer precision explanation, used for the dropdown tooltip.
+const TYPE_PRECISION_DETAIL : Dictionary = {
+	"HALF": "11-bit significand: about 3 decimal digits. Range is only +/-65504, and integers stay exact just to 2048. Suited to normalized or small bounded values, not world coordinates.",
+	"FLOAT": "24-bit significand: about 7 decimal digits. Integers stay exact to 16777216. This is the precision Godot uses for Vector2 and Vector3 in a standard build.",
+	"DOUBLE": "53-bit significand: about 16 decimal digits. Integers stay exact to 2^53. Matches GDScript's native float, so this is the only type that round-trips one without loss.",
+	"BITMASK": "Up to 8 booleans packed into a single byte. Name each bit below; the first name is bit 0 (value 1). Deserializes into a Dictionary of those names to true/false, so eight separate U_8 fields become one byte.",
+}
+
+
+## Human-readable wire cost for a type, e.g. "1 byte", "4 + n bytes".
+## Returns an empty string for a type not in the table, so an unrecognized
+## entry is labelled with its bare name rather than a wrong number.
+func describe_type_cost(type_name: String) -> String:
+	if not TYPE_BYTE_COSTS.has(type_name):
+		return ""
+	if type_name == "BYTES":
+		return "length bytes"
+	var cost : int = TYPE_BYTE_COSTS[type_name]
+	if cost < 0:
+		return "%d + n bytes" % absi(cost)
+	if cost == 1:
+		return "1 byte"
+	return "%d bytes" % cost
+
+
+## Type name with its cost appended, for the dropdown. Falls back to the bare
+## name when the cost is unknown.
+func type_dropdown_label(type_name: String) -> String:
+	var cost := describe_type_cost(type_name)
+	if cost == "":
+		return type_name
+	# Float types carry their precision alongside the size, since the two
+	# together are what the choice actually turns on.
+	if TYPE_PRECISION.has(type_name):
+		return "%s  (%s, %s)" % [type_name, cost, TYPE_PRECISION[type_name]]
+	return "%s  (%s)" % [type_name, cost]
+
+
+## Tooltip text for a type in the schema dropdown, or "" when there's nothing
+## worth adding beyond the label.
+func type_tooltip(type_name: String) -> String:
+	if TYPE_PRECISION_DETAIL.has(type_name):
+		return TYPE_PRECISION_DETAIL[type_name]
+	return ""
 
 ## Packet definitions, each a Dictionary of {Name:String, MaxBytes:int, Schema:Array}.
 var packets : Array = []
@@ -85,6 +163,11 @@ func type_requires_length(type_name: String) -> bool:
 	return LENGTH_REQUIRED_TYPES.has(type_name)
 
 
+## True for types that carry a 'Bits' array of flag names in the schema.
+func type_requires_bits(type_name: String) -> bool:
+	return BITS_REQUIRED_TYPES.has(type_name)
+
+
 func load_from_disk() -> bool:
 	_load_error = ""
 	data_types = parse_data_types()
@@ -126,10 +209,21 @@ func _normalize_packet(entry: Dictionary) -> Dictionary:
 		for chunk in raw_schema:
 			if not chunk is Dictionary:
 				continue
+			# Kept for every type, not just BITMASK, so switching a field's type
+			# back and forth in one session doesn't discard the names already
+			# entered. Only written to disk for types that read it.
+			var bits : Array = []
+			var raw_bits = chunk.get("Bits", [])
+			if raw_bits is Array:
+				for b in raw_bits:
+					if bits.size() >= MAX_BITS:
+						break
+					bits.append(str(b))
 			schema.append({
 				"Name": str(chunk.get("Name", "")),
 				"Type": str(chunk.get("Type", data_types[0] if data_types.size() > 0 else "")),
 				"Length": int(chunk.get("Length", 0)),
+				"Bits": bits,
 			})
 	return {
 		"Name": str(entry.get("Name", "")),
@@ -138,6 +232,11 @@ func _normalize_packet(entry: Dictionary) -> Dictionary:
 		# flags keeps working and no existing packet is silently blocked.
 		"SentByServer": bool(entry.get("SentByServer", true)),
 		"SentByClient": bool(entry.get("SentByClient", true)),
+		# Absent means allowed, matching the direction flags, so an older file
+		# keeps every transport available rather than losing all of them.
+		"AllowReliable": bool(entry.get("AllowReliable", true)),
+		"AllowUnreliable": bool(entry.get("AllowUnreliable", true)),
+		"AllowUnsequenced": bool(entry.get("AllowUnsequenced", true)),
 		"MaxBytes": int(entry.get("MaxBytes", 0)),
 		"Schema": schema,
 	}
@@ -149,6 +248,9 @@ func new_packet(name_hint: String = "NEW_PACKET") -> Dictionary:
 		"_description": "",
 		"SentByServer": true,
 		"SentByClient": true,
+		"AllowReliable": true,
+		"AllowUnreliable": true,
+		"AllowUnsequenced": true,
 		"MaxBytes": 0,
 		"Schema": [],
 	}
@@ -156,7 +258,19 @@ func new_packet(name_hint: String = "NEW_PACKET") -> Dictionary:
 
 func new_schema_entry() -> Dictionary:
 	var default_type := data_types[0] if data_types.size() > 0 else ""
-	return {"Name": "field", "Type": default_type, "Length": 0}
+	return {"Name": "field", "Type": default_type, "Length": 0, "Bits": []}
+
+
+## A unique placeholder name for a newly added bit, so two fresh bits never
+## collide and trip the duplicate check before they've been renamed.
+func new_bit_name(existing: Array) -> String:
+	var i := existing.size()
+	while true:
+		var candidate := "bit_%d" % i
+		if not existing.has(candidate):
+			return candidate
+		i += 1
+	return "bit"
 
 
 func _unique_name(base: String) -> String:
@@ -214,6 +328,9 @@ func validate() -> PackedStringArray:
 		if not bool(p.get("SentByServer", true)) and not bool(p.get("SentByClient", true)):
 			problems.append("%s has both direction toggles off, so nothing can send it." % label)
 
+		if not bool(p.get("AllowReliable", true)) and not bool(p.get("AllowUnreliable", true)) and not bool(p.get("AllowUnsequenced", true)):
+			problems.append("%s has every transport toggle off, so no send method can deliver it." % label)
+
 		var schema : Array = p.get("Schema", [])
 		var seen_fields : Array = []
 		for j in schema.size():
@@ -232,6 +349,21 @@ func validate() -> PackedStringArray:
 				problems.append("%s, field '%s' uses unknown type '%s'." % [label, cname, ctype])
 			elif type_requires_length(ctype) and int(c.get("Length", 0)) <= 0:
 				problems.append("%s, field '%s' is a %s and needs a length above zero." % [label, cname, ctype])
+			elif type_requires_bits(ctype):
+				var bits : Array = c.get("Bits", [])
+				if bits.is_empty():
+					problems.append("%s, field '%s' is a %s and needs at least one named bit." % [label, cname, ctype])
+				elif bits.size() > MAX_BITS:
+					problems.append("%s, field '%s' names %d bits. A %s holds at most %d." % [label, cname, bits.size(), ctype, MAX_BITS])
+				var seen_bits : Array = []
+				for k in bits.size():
+					var bname := str(bits[k]).strip_edges()
+					if bname == "":
+						problems.append("%s, field '%s', bit %d has no name." % [label, cname, k])
+					elif seen_bits.has(bname):
+						problems.append("%s, field '%s' has two bits named '%s'." % [label, cname, bname])
+					else:
+						seen_bits.append(bname)
 
 	return problems
 
@@ -253,6 +385,9 @@ func save_to_disk() -> bool:
 		# readable straight from the file rather than inferred from an absence.
 		out += "\t\t\"SentByServer\": %s,\n" % ("true" if bool(p.get("SentByServer", true)) else "false")
 		out += "\t\t\"SentByClient\": %s,\n" % ("true" if bool(p.get("SentByClient", true)) else "false")
+		out += "\t\t\"AllowReliable\": %s,\n" % ("true" if bool(p.get("AllowReliable", true)) else "false")
+		out += "\t\t\"AllowUnreliable\": %s,\n" % ("true" if bool(p.get("AllowUnreliable", true)) else "false")
+		out += "\t\t\"AllowUnsequenced\": %s,\n" % ("true" if bool(p.get("AllowUnsequenced", true)) else "false")
 		out += "\t\t\"MaxBytes\": %d,\n" % int(p.get("MaxBytes", 0))
 
 		var schema : Array = p.get("Schema", [])
@@ -264,17 +399,31 @@ func save_to_disk() -> bool:
 				var c : Dictionary = schema[j]
 				var ctype := str(c.get("Type", ""))
 				var clength := int(c.get("Length", 0))
+				var cbits : Array = c.get("Bits", [])
 				# Length is written for types that read it, and also kept for any
 				# type that already carried a non-zero value, so hand-authored
 				# numbers aren't silently dropped by an edit session.
 				var write_length := type_requires_length(ctype) or clength > 0
-				out += "\t\t\t{\n"
-				out += "\t\t\t\t\"Name\": %s,\n" % JSON.stringify(str(c.get("Name", "")))
+				# Bits only mean anything to a BITMASK. Names left behind by a
+				# type change are dropped here rather than written as dead keys.
+				var write_bits := type_requires_bits(ctype) and not cbits.is_empty()
+				# Lines are collected first so the trailing comma can be decided
+				# by position rather than by which optional keys are present.
+				var lines : PackedStringArray = []
+				lines.append("\t\t\t\t\"Name\": %s" % JSON.stringify(str(c.get("Name", ""))))
+				lines.append("\t\t\t\t\"Type\": %s" % JSON.stringify(ctype))
 				if write_length:
-					out += "\t\t\t\t\"Type\": %s,\n" % JSON.stringify(ctype)
-					out += "\t\t\t\t\"Length\": %d\n" % clength
-				else:
-					out += "\t\t\t\t\"Type\": %s\n" % JSON.stringify(ctype)
+					lines.append("\t\t\t\t\"Length\": %d" % clength)
+				if write_bits:
+					# One name per line: a bitmask's names are read far more often
+					# than its other fields, and this keeps them diffable.
+					var bit_lines : PackedStringArray = []
+					for k in cbits.size():
+						bit_lines.append("\t\t\t\t\t%s" % JSON.stringify(str(cbits[k])))
+					lines.append("\t\t\t\t\"Bits\": [\n%s\n\t\t\t\t]" % ",\n".join(bit_lines))
+				out += "\t\t\t{\n"
+				for k in lines.size():
+					out += "%s%s\n" % [lines[k], "," if k < lines.size() - 1 else ""]
 				out += "\t\t\t}%s\n" % ("," if j < schema.size() - 1 else "")
 			out += "\t\t]\n"
 

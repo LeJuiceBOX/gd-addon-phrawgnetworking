@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 
-const MAIN_PANEL := preload("res://addons/Networking/Editor/packet_editor.tscn")
+const MAIN_PANEL := preload("res://addons/Networking/Editor/networking_editor.tscn")
 
 var _panel_instance : Control
 
@@ -10,7 +10,8 @@ func _enter_tree() -> void:
 	_panel_instance = MAIN_PANEL.instantiate()
 	EditorInterface.get_editor_main_screen().add_child(_panel_instance)
 	add_autoload_singleton("Network","res://addons/Networking/Library/network_singleton.gd")
-	add_autoload_singleton("PacketTypes","res://addons/Networking/Editor/packet_types.gd")
+	add_autoload_singleton("PacketTypes","res://addons/Networking/Editor/PacketEditor/packet_types.gd")
+	add_autoload_singleton("ObjectTypes","res://addons/Networking/Editor/ObjectEditor/object_types.gd")
 	_make_visible(false)
 
 
@@ -20,6 +21,7 @@ func _exit_tree() -> void:
 	_panel_instance = null
 	remove_autoload_singleton("Network")
 	remove_autoload_singleton("PacketTypes")
+	remove_autoload_singleton("ObjectTypes")
 
 
 func _has_main_screen() -> bool:
@@ -38,8 +40,10 @@ func _make_visible(visible: bool) -> void:
 		_panel_instance.position = Vector2.ZERO
 
 
+## The main screen now hosts both the Packets and Objects tabs, so it is named
+## for the plugin rather than for either one.
 func _get_plugin_name() -> String:
-	return "Packets"
+	return "Networking"
 
 
 func _get_plugin_icon() -> Texture2D:

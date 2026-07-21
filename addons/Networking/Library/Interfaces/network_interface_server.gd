@@ -1,18 +1,24 @@
 ## SERVER INTERFACE
 class_name ServerNetworkInterface extends NetworkInterface
 
+static var next_net_object_id = 0
 var clients: Array[NetworkConnection] = []
 
 var _peer_to_client_map : Dictionary[ENetPacketPeer,NetworkConnection]
+
+var tick_rate = 30
+var p = preload("res://NetObjectTest/Player/player_prefab.tscn")
 
 ####################################################################################################################
 
 func _event_connect(peer: ENetPacketPeer, data: int, channel: int):
 	var c = NetworkConnection.new(peer,"UNNAMED")
 	send_reliable(peer,PacketTypes.CONNECTION_ESTABLISHED,[c.cid])
-	_peer_to_client_map.set(peer,c)
-	clients.append(c)
-	send_reliable_except(c.peer,PacketTypes.CLIENT_ADDED,[c.cid])
+	for id: int in NetworkNode3D.registry:
+		var node: NetworkNode3D = NetworkNode3D.registry.get(id)
+		send_reliable(peer,PacketTypes.OBJECT_SYNC_CREATE,[node.net_object_id,0])
+	var s = p.instantiate()
+	Network.get_tree().current_scene.add_child(s)
 	Network.on_player_added.emit(c.cid)
 
 func _event_disconnect(peer: ENetPacketPeer, data: int, channel: int):

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c7t844r2x4ls5"]
 
-[ext_resource type="Script" uid="uid://0kein45h5wet" path="res://addons/Networking/Editor/packet_editor.gd" id="1_editor"]
+[ext_resource type="Script" uid="uid://0kein45h5wet" path="res://addons/Networking/Editor/PacketEditor/packet_editor.gd" id="1_editor"]
 
 [node name="PacketEditor" type="Control" unique_id=593559521]
 custom_minimum_size = Vector2(0, 320)

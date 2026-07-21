@@ -2,6 +2,7 @@
 extends Node
 
 ## [b]This is a builtin packet.[/b]
+##
 ## This packet is sent when a player first tries to connect to the server. It tells the client that they successfuly connected to the server and so it can recieve its cid.
 ##
 ## [b]Schema Notes:[/b]
@@ -9,33 +10,38 @@ extends Node
 ## cid - The client id that the server assigned the client recieving this packet.
 ##
 ## [b]Sent by:[/b] server only
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 2
 ## [b]Schema:[/b]
 ## [codeblock]
-## cid  U8
+## cid  U_8
 ## [/codeblock]
 var CONNECTION_ESTABLISHED: String = "CONNECTION_ESTABLISHED"
 
 ## [b]This is a builtin packet.[/b]
+##
 ## This packet is sent when the server closes the application, tells the client the connection should be closed.
 ##
 ## [b]Sent by:[/b] server only
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 1
 ## [b]Schema:[/b] none, this packet is just its id byte.
 var SERVER_SHUTTINGDOWN: String = "SERVER_SHUTTINGDOWN"
 
 ## [b]This is a builtin packet.[/b]
+##
 ## Used to send a message to a client for debug perposes.
 ##
 ## [b]Examples:[/b]
 ## - Transaction failed, not enough funds!
-## - You have been kicked/banned
+## - You have been kicked/banned.
 ##
 ## [b]Schema Notes:[/b]
 ## ------------------------------------------------------------------------
 ## message - The error message sent from the server.
 ##
 ## [b]Sent by:[/b] server only
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 255
 ## [b]Schema:[/b]
 ## [codeblock]
@@ -44,6 +50,7 @@ var SERVER_SHUTTINGDOWN: String = "SERVER_SHUTTINGDOWN"
 var SERVER_ERROR: String = "SERVER_ERROR"
 
 ## [b]This is a builtin packet.[/b]
+##
 ## Broadcasted to all clients to notify them of a new client joining the server.
 ##
 ## [b]Schema Notes:[/b]
@@ -51,14 +58,16 @@ var SERVER_ERROR: String = "SERVER_ERROR"
 ## cid - The [b]client ID[/b] of the client who joined the server.
 ##
 ## [b]Sent by:[/b] server only
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 0
 ## [b]Schema:[/b]
 ## [codeblock]
-## cid  U8
+## cid  U_8
 ## [/codeblock]
 var CLIENT_ADDED: String = "CLIENT_ADDED"
 
 ## [b]This is a builtin packet.[/b]
+##
 ## Broadcasted to all clients to notify everyone of a client disconnecting from the server.
 ##
 ## [b]Schema Notes:[/b]
@@ -66,14 +75,31 @@ var CLIENT_ADDED: String = "CLIENT_ADDED"
 ## cid - The [b]client ID[/b] of the client who left the server.
 ##
 ## [b]Sent by:[/b] server only
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 2
 ## [b]Schema:[/b]
 ## [codeblock]
-## cid  U8
+## cid  U_8
 ## [/codeblock]
 var CLIENT_REMOVED: String = "CLIENT_REMOVED"
 
+## [b]Sent by:[/b] client only
+## [b]Transport:[/b] reliable, unreliable, unsequenced
+## [b]Max bytes:[/b] 0
+## [b]Schema:[/b]
+## [codeblock]
+## input_mask  BITMASK
+##               bit 0 (1) up
+##               bit 1 (2) down
+##               bit 2 (4) left
+##               bit 3 (8) right
+##               bit 4 (16) jump
+##               bit 5 (32) fire
+## [/codeblock]
+var CLIENT_INPUT_PACKET: String = "CLIENT_INPUT_PACKET"
+
 ## [b]This is a builtin packet.[/b]
+##
 ## Used by the [b]server[/b] to tell clients to update a property.
 ##
 ## [b]Schema Notes:[/b]
@@ -83,35 +109,38 @@ var CLIENT_REMOVED: String = "CLIENT_REMOVED"
 ## property_value - The new value of the property
 ##
 ## [b]Sent by:[/b] server and client
+## [b]Transport:[/b] reliable, unreliable, unsequenced
 ## [b]Max bytes:[/b] 8
 ## [b]Schema:[/b]
 ## [codeblock]
-## net_id          8
+## net_id          U_16
 ## property_name   STRING_UTF8
 ## property_value  VARIANT
 ## [/codeblock]
 var OBJECT_SYNC_PROP: String = "OBJECT_SYNC_PROP"
 
 ## [b]This is a builtin packet.[/b]
+##
 ## Used by the [b]server[/b] to tell the client to create a [b]RemoteNetworkObject[/b] on their machine.
 ##
 ## [b]Schema Notes:[/b]
 ## ------------------------------------------------------------------------
-## object_net_id - The [b]net_id[/b] of the object to create
+## net_id  - The [b]net_id[/b] of the object to create
 ## parent_net_id - The [b]net_id[/b] of the object to parent this new object to
 ## object_type - The object type to create
 ##
 ## [b]Sent by:[/b] server and client
-## [b]Max bytes:[/b] 16
+## [b]Transport:[/b] reliable
+## [b]Max bytes:[/b] 3
 ## [b]Schema:[/b]
 ## [codeblock]
-## object_net_id  8
-## parent_net_id  8
-## object_type    U8
+## net_id       U_16
+## object_type  U_8
 ## [/codeblock]
 var OBJECT_SYNC_CREATE: String = "OBJECT_SYNC_CREATE"
 
 ## [b]This is a builtin packet.[/b]
+##
 ## Used by the [b]client[/b] to request that the server send them a [b]OBJECT_SYNC_CREATE[/b] packet.
 ## This is required when the client recieves an [b]OBJECT_SYNC_PROP[/b] packet for an object that doesnt exist for them.
 ##
@@ -120,12 +149,36 @@ var OBJECT_SYNC_CREATE: String = "OBJECT_SYNC_CREATE"
 ## net_id - The [b]net_id[/b] of the object the client doesnt have.
 ##
 ## [b]Sent by:[/b] server and client
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 0
 ## [b]Schema:[/b]
 ## [codeblock]
-## net_id  8
+## net_id  INT_8
 ## [/codeblock]
 var OBJECT_SYNC_REQUEST: String = "OBJECT_SYNC_REQUEST"
+
+## [b]Sent by:[/b] server and client
+## [b]Transport:[/b] unreliable, unsequenced
+## [b]Max bytes:[/b] 14
+## [b]Schema:[/b]
+## [codeblock]
+## net_id  U_16
+## x       FLOAT
+## y       FLOAT
+## z       FLOAT
+## [/codeblock]
+var OBJECT_SYNC_POSITION: String = "OBJECT_SYNC_POSITION"
+
+## [b]Sent by:[/b] server and client
+## [b]Transport:[/b] unreliable, unsequenced
+## [b]Max bytes:[/b] 24
+## [b]Schema:[/b]
+## [codeblock]
+## x  DOUBLE
+## y  DOUBLE
+## z  DOUBLE
+## [/codeblock]
+var OBJECT_SYNC_ROTATION: String = "OBJECT_SYNC_ROTATION"
 
 ## Sent by the client to request that the server relays a message to everyone else on the server.
 ##
@@ -134,6 +187,7 @@ var OBJECT_SYNC_REQUEST: String = "OBJECT_SYNC_REQUEST"
 ## message - The message that the client would like to send.
 ##
 ## [b]Sent by:[/b] client only
+## [b]Transport:[/b] reliable
 ## [b]Max bytes:[/b] 256
 ## [b]Schema:[/b]
 ## [codeblock]
@@ -149,10 +203,11 @@ var CHAT_MESSAGE: String = "CHAT_MESSAGE"
 ## message - The message that client sent.
 ##
 ## [b]Sent by:[/b] server only
+## [b]Transport:[/b] reliable, unsequenced
 ## [b]Max bytes:[/b] 255
 ## [b]Schema:[/b]
 ## [codeblock]
-## from_cid  U8
+## from_cid  U_8
 ## message   STRING_UTF8
 ## [/codeblock]
 var CHAT_RELAY: String = "CHAT_RELAY"

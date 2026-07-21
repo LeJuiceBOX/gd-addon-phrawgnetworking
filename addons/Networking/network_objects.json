@@ -1,0 +1,7 @@
+[
+	{
+		"Name": "TEST_PLAYER",
+		"SceneMode": "SINGLE",
+		"Scene": "res://main.tscn"
+	}
+]
